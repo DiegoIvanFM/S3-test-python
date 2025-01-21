@@ -38,7 +38,7 @@ if md5_local == etag:
     print("La carga fue exitosa y el archivo es íntegro.")
     print ("Hash local: ", md5_local)
     print("etag de server: ", response)
-else:
+else: 
     print("El archivo puede estar corrupto o el ETag no es un hash MD5 simple.")
     print ("Hash local: ", md5_local)
     print("etag de server: ", etag)
