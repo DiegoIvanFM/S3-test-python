@@ -1,4 +1,5 @@
 import hashlib
+import io
 from webdav4.client import Client
 
 # Configurar el cliente WebDAV
@@ -23,19 +24,23 @@ def calcular_sha256(filename):
 
 # 1. Subir el archivo
 client.upload_file(archivo, ruta_webdav)
-print(f"Archivo {archivo} subido a {ruta_webdav}")
+print(f"📤 Archivo {archivo} subido a {ruta_webdav}")
 
 # 2. Calcular el checksum y guardarlo en WebDAV
 checksum = calcular_sha256(archivo)
-client.upload_from_str(ruta_checksum, checksum)
-print(f"Checksum SHA-256 ({checksum}) subido a {ruta_checksum}")
+checksum_data = io.BytesIO(checksum.encode())  # Convertir string a BytesIO
+client.upload_fileobj(checksum_data, ruta_checksum)
+print(f"✅ Checksum SHA-256 ({checksum}) subido a {ruta_checksum}")
 
 # 3. Descargar el archivo desde WebDAV y validar integridad
 client.download_file(ruta_webdav, "archivo_descargado.txt")
 checksum_descargado = calcular_sha256("archivo_descargado.txt")
 
 # 4. Descargar el checksum desde WebDAV
-checksum_guardado = client.download_as_str(ruta_checksum)
+with io.BytesIO() as downloaded_data:
+    client.download_fileobj(ruta_checksum, downloaded_data)
+    downloaded_data.seek(0)
+    checksum_guardado = downloaded_data.read().decode().strip()
 
 # 5. Verificar integridad
 if checksum_descargado == checksum_guardado:
